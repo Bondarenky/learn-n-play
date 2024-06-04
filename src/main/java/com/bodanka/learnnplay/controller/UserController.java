@@ -10,6 +10,7 @@ import com.bodanka.learnnplay.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -59,5 +60,13 @@ public class UserController {
     public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
         userService.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/current")
+    public ResponseEntity<ResponseUserDto> getCurrentUser(Authentication authentication) {
+        User current = userService.findByEmail(authentication.getName()).orElseThrow(
+                () -> new BadRequestException("User with email [%s] not found".formatted(authentication.getName()))
+        );
+        return ResponseEntity.ok(userMapper.toResponseDto(current));
     }
 }
