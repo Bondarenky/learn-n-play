@@ -29,7 +29,6 @@ public class UserTestGrade {
     @Column(length = 36)
     private String testId;
 
-    @Id
     @Column(precision = 2)
     private double percentage;
 }

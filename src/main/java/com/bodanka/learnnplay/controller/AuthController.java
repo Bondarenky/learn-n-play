@@ -1,5 +1,6 @@
 package com.bodanka.learnnplay.controller;
 
+import com.bodanka.learnnplay.domain.Grade;
 import com.bodanka.learnnplay.domain.Role;
 import com.bodanka.learnnplay.domain.dto.request.SignInRequestDto;
 import com.bodanka.learnnplay.domain.dto.request.TeacherSignUpRequestDto;
@@ -23,7 +24,7 @@ public class AuthController {
         if (!dto.password().equals(dto.confirmPassword())) {
             throw new BadRequestException("Passwords do not match");
         }
-        User user = authService.signUp(new User(dto.firstName(), dto.lastName(), dto.email(), dto.password(), Role.TEACHER));
+        User user = authService.signUp(new User(dto.firstName(), dto.lastName(), dto.email(), dto.password(), Role.TEACHER, Grade.ELEVEN));
         return ResponseEntity.ok("Sign up successful. Go to " + user.getEmail() + " to activate an account.");
     }
 

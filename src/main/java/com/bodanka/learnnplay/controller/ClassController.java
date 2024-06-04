@@ -14,8 +14,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -43,5 +46,12 @@ public class ClassController {
                 .toList();
 
         return ResponseEntity.ok(new ResponseClassDto(clazz.getId(), grade.getGradeValue(), themes));
+    }
+
+    @GetMapping
+    public ResponseEntity<Map<Integer, String>> getClasses() {
+        Map<Integer, String> integerClassMap = Arrays.stream(Grade.values())
+                .collect(Collectors.toMap(Grade::getGradeValue, grade -> classService.findByGrade(grade).get().getId()));
+        return ResponseEntity.ok(integerClassMap);
     }
 }

@@ -2,6 +2,7 @@ package com.bodanka.learnnplay.controller;
 
 import com.bodanka.learnnplay.domain.dto.request.RequestUserByEmailDto;
 import com.bodanka.learnnplay.domain.dto.request.RequestUserDto;
+import com.bodanka.learnnplay.domain.dto.response.ResponseCurrentUserDto;
 import com.bodanka.learnnplay.domain.dto.response.ResponseUserDto;
 import com.bodanka.learnnplay.domain.entity.User;
 import com.bodanka.learnnplay.domain.mapper.Mapper;
@@ -63,10 +64,16 @@ public class UserController {
     }
 
     @GetMapping("/current")
-    public ResponseEntity<ResponseUserDto> getCurrentUser(Authentication authentication) {
+    public ResponseEntity<ResponseCurrentUserDto> getCurrentUser(Authentication authentication) {
         User current = userService.findByEmail(authentication.getName()).orElseThrow(
                 () -> new BadRequestException("User with email [%s] not found".formatted(authentication.getName()))
         );
-        return ResponseEntity.ok(userMapper.toResponseDto(current));
+        return ResponseEntity.ok(new ResponseCurrentUserDto(
+                current.getFirstName(),
+                current.getLastName(),
+                current.getEmail(),
+                current.getRole().name(),
+                current.getCurrentGrade().getGradeValue()
+        ));
     }
 }
