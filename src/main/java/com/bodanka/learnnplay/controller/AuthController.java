@@ -1,11 +1,11 @@
 package com.bodanka.learnnplay.controller;
 
-import com.bodanka.learnnplay.domain.dto.request.RequestUserDto;
+import com.bodanka.learnnplay.domain.Role;
 import com.bodanka.learnnplay.domain.dto.request.SignInRequestDto;
-import com.bodanka.learnnplay.domain.dto.response.ResponseUserDto;
+import com.bodanka.learnnplay.domain.dto.request.TeacherSignUpRequestDto;
 import com.bodanka.learnnplay.domain.dto.response.SignInResponseDto;
 import com.bodanka.learnnplay.domain.entity.User;
-import com.bodanka.learnnplay.domain.mapper.Mapper;
+import com.bodanka.learnnplay.exception.BadRequestException;
 import com.bodanka.learnnplay.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,11 +17,13 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/auth")
 public class AuthController {
     private final AuthService authService;
-    private final Mapper<User, RequestUserDto, ResponseUserDto> userMapper;
 
     @PostMapping("/sign-up")
-    public ResponseEntity<String> signUp(@RequestBody RequestUserDto dto) {
-        User user = authService.signUp(userMapper.toEntity(dto));
+    public ResponseEntity<String> signUp(@RequestBody TeacherSignUpRequestDto dto) {
+        if (!dto.password().equals(dto.confirmPassword())) {
+            throw new BadRequestException("Passwords do not match");
+        }
+        User user = authService.signUp(new User(dto.firstName(), dto.lastName(), dto.email(), dto.password(), Role.TEACHER));
         return ResponseEntity.ok("Sign up successful. Go to " + user.getEmail() + " to activate an account.");
     }
 
