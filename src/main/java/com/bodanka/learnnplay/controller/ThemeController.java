@@ -16,6 +16,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @PreAuthorize("hasRole('TEACHER')")
 @RestController
 @RequiredArgsConstructor
@@ -46,5 +48,16 @@ public class ThemeController {
             themeService.saveTheme(theme);
         });
         return ResponseEntity.ok("Theme [%s] renamed to [%s]".formatted(oldTitle, dto.title()));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<ResponseThemeDto>> getTheme(Authentication authentication) {
+        User teacher = userService.findByEmail(authentication.getName()).orElseThrow(
+                () -> new RuntimeException("Teacher [%s] not found".formatted(authentication.getName()))
+        );
+        List<ResponseThemeDto> themes = themeService.findByUser(teacher).stream()
+                .map(theme -> new ResponseThemeDto(theme.getId(), theme.getTitle()))
+                .toList();
+        return ResponseEntity.ok(themes);
     }
 }
