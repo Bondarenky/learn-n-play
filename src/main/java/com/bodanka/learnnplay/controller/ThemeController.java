@@ -60,4 +60,9 @@ public class ThemeController {
                 .toList();
         return ResponseEntity.ok(themes);
     }
+
+    @DeleteMapping("/{themeId}")
+    public ResponseEntity<String> deleteTheme(@PathVariable String themeId) {
+        return ResponseEntity.ok(themeService.deleteThemeById(themeId));
+    }
 }

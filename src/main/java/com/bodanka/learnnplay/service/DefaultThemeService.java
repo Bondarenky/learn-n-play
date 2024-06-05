@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @RequiredArgsConstructor
@@ -30,5 +31,15 @@ public class DefaultThemeService implements ThemeService {
         List<Theme> themes = themeRepository.findByUser(user);
         themes.sort(Comparator.comparingInt(value -> value.getClazz().getGrade().getGradeValue()));
         return themes;
+    }
+
+    @Override
+    public String deleteThemeById(String id) {
+        AtomicReference<String> title = new AtomicReference<>();
+        findThemeById(id).ifPresent(theme -> {
+            title.set(theme.getTitle());
+            themeRepository.delete(theme);
+        });
+        return "Theme %s and its tests were deleted".formatted(title.get());
     }
 }

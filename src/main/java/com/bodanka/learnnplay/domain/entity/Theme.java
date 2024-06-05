@@ -21,7 +21,7 @@ public class Theme {
     @Column(nullable = false)
     private String title;
 
-    @OneToMany(mappedBy = "theme")
+    @OneToMany(mappedBy = "theme", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Test> tests = new ArrayList<>();
 
     @ManyToOne

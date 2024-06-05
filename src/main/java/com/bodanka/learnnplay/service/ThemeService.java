@@ -12,4 +12,6 @@ public interface ThemeService {
     Optional<Theme> findThemeById(String id);
 
     List<Theme> findByUser(User user);
+
+    String deleteThemeById(String id);
 }
