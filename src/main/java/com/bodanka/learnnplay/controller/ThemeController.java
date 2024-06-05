@@ -1,14 +1,18 @@
 package com.bodanka.learnnplay.controller;
 
 import com.bodanka.learnnplay.domain.Grade;
+import com.bodanka.learnnplay.domain.Role;
 import com.bodanka.learnnplay.domain.dto.request.RequestThemeDto;
 import com.bodanka.learnnplay.domain.dto.response.ResponseThemeDto;
+import com.bodanka.learnnplay.domain.dto.response.ResponseThemeWithPercentageDto;
 import com.bodanka.learnnplay.domain.entity.Class;
 import com.bodanka.learnnplay.domain.entity.Theme;
 import com.bodanka.learnnplay.domain.entity.User;
+import com.bodanka.learnnplay.domain.entity.UserTestGrade;
 import com.bodanka.learnnplay.service.ClassService;
 import com.bodanka.learnnplay.service.ThemeService;
 import com.bodanka.learnnplay.service.UserService;
+import com.bodanka.learnnplay.service.UserTestGradeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +21,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @PreAuthorize("hasRole('TEACHER')")
 @RestController
@@ -26,6 +32,7 @@ public class ThemeController {
     private final ThemeService themeService;
     private final UserService userService;
     private final ClassService classService;
+    private final UserTestGradeService userTestGradeService;
 
     @PostMapping("/{grade}")
     public ResponseEntity<ResponseThemeDto> createTheme(@PathVariable int grade, @RequestBody RequestThemeDto dto, Authentication authentication) {
@@ -64,5 +71,35 @@ public class ThemeController {
     @DeleteMapping("/{themeId}")
     public ResponseEntity<String> deleteTheme(@PathVariable String themeId) {
         return ResponseEntity.ok(themeService.deleteThemeById(themeId));
+    }
+
+    @GetMapping("/{email}")
+    public ResponseEntity<List<ResponseThemeWithPercentageDto>> getThemeByEmail(@PathVariable String email) {
+        User user = userService.findByEmail(email).orElseThrow(() -> new RuntimeException("User [%s] not found".formatted(email)));
+
+        if (user.getRole() == Role.TEACHER) {
+            List<ResponseThemeWithPercentageDto> teacherThemes = themeService.findByUser(user).stream()
+                    .map(theme -> new ResponseThemeWithPercentageDto(theme.getId(), theme.getTitle(), null))
+                    .toList();
+            return ResponseEntity.ok(teacherThemes);
+        }
+
+        Map<String, List<UserTestGrade>> map = userTestGradeService.findByUserId(user.getId()).stream()
+                .collect(Collectors.groupingBy(UserTestGrade::getThemeId));
+        List<ResponseThemeWithPercentageDto> themesWithPercentage = map.entrySet().stream()
+                .map(entry -> new ResponseThemeWithPercentageDto(entry.getKey(), getThemeTitleOrEmpty(entry.getKey()), calculateThemePercentage(entry.getValue())))
+                .toList();
+        return ResponseEntity.ok(themesWithPercentage);
+    }
+
+    private String getThemeTitleOrEmpty(String themeId) {
+        return themeService.findThemeById(themeId).map(Theme::getTitle).orElse("");
+    }
+
+    private double calculateThemePercentage(List<UserTestGrade> grades) {
+        return grades.stream()
+                .mapToDouble(UserTestGrade::getPercentage)
+                .average()
+                .orElse(0);
     }
 }

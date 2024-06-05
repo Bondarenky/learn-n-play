@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @RequiredArgsConstructor
 public class DefaultThemeService implements ThemeService {
     private final ThemeRepository themeRepository;
+    private final UserTestGradeService userTestGradeService;
 
     @Override
     public Theme saveTheme(Theme theme) {
@@ -42,6 +43,7 @@ public class DefaultThemeService implements ThemeService {
             title.set(theme.getTitle());
             hasTests.set(!theme.getTests().isEmpty());
             themeRepository.delete(theme);
+            userTestGradeService.deleteByThemeId(id);
         });
         return "Theme %s%s were deleted".formatted(title.get(), hasTests.get() ? " and its tests" : "");
     }

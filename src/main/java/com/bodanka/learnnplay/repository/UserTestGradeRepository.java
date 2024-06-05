@@ -10,4 +10,10 @@ import java.util.List;
 @Repository
 public interface UserTestGradeRepository extends JpaRepository<UserTestGrade, UserTestGradeId> {
     List<UserTestGrade> findByUserIdAndClassId(String userId, String classId);
+
+    List<UserTestGrade> findByUserId(String userId);
+
+    void deleteByThemeId(String themeId);
+
+    void deleteByTestId(String testId);
 }

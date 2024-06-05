@@ -21,4 +21,19 @@ public class DefaultUserTestGradeService implements UserTestGradeService {
     public List<UserTestGrade> findByUserIdAndClassId(String userId, String classId) {
         return userTestGradeRepository.findByUserIdAndClassId(userId, classId);
     }
+
+    @Override
+    public List<UserTestGrade> findByUserId(String userId) {
+        return userTestGradeRepository.findByUserId(userId);
+    }
+
+    @Override
+    public void deleteByThemeId(String themeId) {
+        userTestGradeRepository.deleteByThemeId(themeId);
+    }
+
+    @Override
+    public void deleteByTestId(String testId) {
+        userTestGradeRepository.deleteByTestId(testId);
+    }
 }

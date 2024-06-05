@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @RequiredArgsConstructor
 public class DefaultTestService implements TestService {
     private final TestRepository testRepository;
+    private final UserTestGradeService userTestGradeService;
 
     @Override
     public Test save(Test test) {
@@ -29,6 +30,7 @@ public class DefaultTestService implements TestService {
         findById(id).ifPresent(test -> {
             testTitle.set(test.getTitle());
             testRepository.delete(test);
+            userTestGradeService.deleteByTestId(id);
         });
         return "Test %s were deleted".formatted(testTitle.get());
     }
