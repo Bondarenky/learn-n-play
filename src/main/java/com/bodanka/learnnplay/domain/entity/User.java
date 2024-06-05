@@ -70,4 +70,8 @@ public class User {
         this.role = role;
         this.currentGrade = currentGrade;
     }
+
+    public static User empty() {
+        return new User();
+    }
 }

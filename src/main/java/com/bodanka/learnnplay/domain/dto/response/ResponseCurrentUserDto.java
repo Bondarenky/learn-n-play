@@ -5,6 +5,9 @@ public record ResponseCurrentUserDto(
         String lastName,
         String email,
         String role,
-        int grade
+        int grade,
+        String teacherFirstName,
+        String teacherLastName,
+        String teacherEmail
 ) {
 }
