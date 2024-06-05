@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @RequiredArgsConstructor
@@ -20,5 +21,15 @@ public class DefaultTestService implements TestService {
     @Override
     public Optional<Test> findById(String id) {
         return testRepository.findById(id);
+    }
+
+    @Override
+    public String delete(String id) {
+        AtomicReference<String> testTitle = new AtomicReference<>("");
+        findById(id).ifPresent(test -> {
+            testTitle.set(test.getTitle());
+            testRepository.delete(test);
+        });
+        return "Test %s deleted".formatted(testTitle.get());
     }
 }

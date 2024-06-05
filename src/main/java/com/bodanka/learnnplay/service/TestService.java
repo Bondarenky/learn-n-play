@@ -8,4 +8,6 @@ public interface TestService {
     Test save(Test test);
 
     Optional<Test> findById(String id);
+
+    String delete(String id);
 }

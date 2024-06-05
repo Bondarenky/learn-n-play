@@ -63,4 +63,9 @@ public class ThemeTestController {
             throw new RuntimeException("Failed to parse questions: ", e);
         }
     }
+
+    @DeleteMapping("/{testId}")
+    public ResponseEntity<String> deleteTestById(@PathVariable("testId") String testId) {
+        return ResponseEntity.ok(testService.delete(testId));
+    }
 }
