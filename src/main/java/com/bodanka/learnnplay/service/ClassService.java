@@ -9,4 +9,6 @@ public interface ClassService {
     Class save(Class clazz);
 
     Optional<Class> findByGrade(Grade grade);
+
+    Optional<Grade> findGradeByClassId(String id);
 }

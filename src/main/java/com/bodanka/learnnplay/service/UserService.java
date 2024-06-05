@@ -14,9 +14,7 @@ public interface UserService {
 
     Optional<User> findByEmail(String email);
 
-    List<User> findAll();
-
-    void deleteById(UUID id);
+    String deleteById(UUID id);
 
     void enable(UUID id);
 

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @RequiredArgsConstructor
@@ -22,7 +23,6 @@ public class DefaultUserService implements UserService {
     @Override
     public User save(User user) {
         validateUser(user);
-
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
@@ -38,13 +38,13 @@ public class DefaultUserService implements UserService {
     }
 
     @Override
-    public List<User> findAll() {
-        return userRepository.findAll();
-    }
-
-    @Override
-    public void deleteById(UUID id) {
-        userRepository.deleteById(id.toString());
+    public String deleteById(UUID id) {
+        AtomicReference<String> name = new AtomicReference<>();
+        findById(id).ifPresent(user -> {
+            name.set(user.getFirstName() + " " + user.getLastName());
+            userRepository.delete(user);
+        });
+        return name.get();
     }
 
     @Override

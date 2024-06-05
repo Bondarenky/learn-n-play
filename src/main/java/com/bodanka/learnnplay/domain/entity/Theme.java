@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,9 +33,18 @@ public class Theme {
     @JoinColumn(name = "class_id", nullable = false)
     private Class clazz;
 
+    @Column(nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private LocalDateTime createdAt;
+
     public Theme(String title, User user, Class clazz) {
         this.title = title;
         this.user = user;
         this.clazz = clazz;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
     }
 }

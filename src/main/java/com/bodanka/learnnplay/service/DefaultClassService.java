@@ -22,4 +22,9 @@ public class DefaultClassService implements ClassService {
     public Optional<Class> findByGrade(Grade grade) {
         return classRepository.findByGrade(grade);
     }
+
+    @Override
+    public Optional<Grade> findGradeByClassId(String id) {
+        return classRepository.findById(id).map(Class::getGrade);
+    }
 }

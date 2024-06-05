@@ -1,31 +1,33 @@
 package com.bodanka.learnnplay.controller;
 
+import com.bodanka.learnnplay.domain.Grade;
+import com.bodanka.learnnplay.domain.Role;
 import com.bodanka.learnnplay.domain.dto.request.RequestQuestionDto;
 import com.bodanka.learnnplay.domain.dto.request.RequestTestAnswersDto;
+import com.bodanka.learnnplay.domain.dto.request.RequestUserByEmailDto;
+import com.bodanka.learnnplay.domain.dto.response.ResponseClassWithGradesDto;
 import com.bodanka.learnnplay.domain.dto.response.ResponseGradeDto;
+import com.bodanka.learnnplay.domain.dto.response.ResponseThemeWithGradeDto;
+import com.bodanka.learnnplay.domain.dto.response.ResponseUserWithGradesDto;
 import com.bodanka.learnnplay.domain.entity.Test;
+import com.bodanka.learnnplay.domain.entity.Theme;
 import com.bodanka.learnnplay.domain.entity.User;
 import com.bodanka.learnnplay.domain.entity.UserTestGrade;
-import com.bodanka.learnnplay.service.TestService;
-import com.bodanka.learnnplay.service.UserService;
-import com.bodanka.learnnplay.service.UserTestGradeService;
+import com.bodanka.learnnplay.service.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
-@PreAuthorize("hasRole('STUDENT')")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/grades")
@@ -33,6 +35,8 @@ public class UserTestGradeController {
     private final UserTestGradeService userTestGradeService;
     private final TestService testService;
     private final UserService userService;
+    private final ClassService classService;
+    private final ThemeService themeService;
 
     @PostMapping
     private ResponseEntity<ResponseGradeDto> create(@RequestBody RequestTestAnswersDto dto, Authentication authentication) {
@@ -85,5 +89,67 @@ public class UserTestGradeController {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @PostMapping("/teachers/students")
+    public ResponseEntity<List<ResponseUserWithGradesDto>> getStudentsGrades(@RequestBody RequestUserByEmailDto dto) {
+        User teacher = userService.findByEmail(dto.email()).orElse(User.empty());
+        if (teacher.getRole() == null || teacher.getRole() == Role.STUDENT) {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+
+        Map<String, List<UserTestGrade>> studentsGrades = teacher.getStudents().stream()
+                .flatMap(student -> userTestGradeService.findByUserId(student.getId()).stream())
+                .collect(Collectors.groupingBy(UserTestGrade::getUserId, LinkedHashMap::new, Collectors.toList()));
+
+        List<ResponseUserWithGradesDto> usersGrades = studentsGrades.entrySet().stream()
+                .map(entry -> {
+                    User student = userService.findById(UUID.fromString(entry.getKey())).orElse(User.empty());
+                    double totalGrade = entry.getValue().stream()
+                            .mapToDouble(UserTestGrade::getPercentage)
+                            .average()
+                            .orElse(0);
+
+                    Map<String, List<UserTestGrade>> classesGrades = entry.getValue().stream()
+                            .collect(Collectors.groupingBy(UserTestGrade::getClassId));
+
+                    List<ResponseClassWithGradesDto> classesWithGrades = classesGrades.entrySet().stream()
+                            .map(classEntry -> {
+                                Grade grade = classService.findGradeByClassId(classEntry.getKey())
+                                        .orElseThrow(() -> new RuntimeException("Class [%s] not found".formatted(classEntry.getKey())));
+                                double classGrade = classEntry.getValue().stream()
+                                        .mapToDouble(UserTestGrade::getPercentage)
+                                        .average()
+                                        .orElse(0);
+
+                                Map<String, List<UserTestGrade>> themesGrades = classEntry.getValue().stream()
+                                        .collect(Collectors.groupingBy(UserTestGrade::getThemeId));
+
+                                List<ResponseThemeWithGradeDto> themesWithGrades = themesGrades.entrySet().stream()
+                                        .map(themeEntry -> {
+                                            Theme theme = themeService.findThemeById(themeEntry.getKey())
+                                                    .orElseThrow(() -> new RuntimeException("Theme [%s] not found".formatted(themeEntry.getKey())));
+                                            double themeGrade = themeEntry.getValue().stream()
+                                                    .mapToDouble(UserTestGrade::getPercentage)
+                                                    .average()
+                                                    .orElse(0);
+                                            return new ResponseThemeWithGradeDto(theme.getId(), theme.getTitle(), themeGrade);
+                                        })
+                                        .sorted(Comparator.comparing(ResponseThemeWithGradeDto::themeTitle))
+                                        .toList();
+
+                                return new ResponseClassWithGradesDto(grade.getGradeValue(), classGrade, themesWithGrades);
+                            })
+                            .sorted(Comparator.comparing(ResponseClassWithGradesDto::grade))
+                            .toList();
+
+                    return new ResponseUserWithGradesDto(student.getId(), student.getFirstName(), student.getLastName(), totalGrade, classesWithGrades);
+                })
+                .sorted(Comparator.comparing(ResponseUserWithGradesDto::firstName))
+                .toList();
+
+        List<ResponseUserWithGradesDto> res = new ArrayList<>(usersGrades);
+        res.sort(Comparator.comparing(ResponseUserWithGradesDto::firstName));
+        return ResponseEntity.ok(res);
     }
 }

@@ -3,7 +3,7 @@ package com.bodanka.learnnplay.controller;
 import com.bodanka.learnnplay.domain.Grade;
 import com.bodanka.learnnplay.domain.Role;
 import com.bodanka.learnnplay.domain.dto.request.SignInRequestDto;
-import com.bodanka.learnnplay.domain.dto.request.TeacherSignUpRequestDto;
+import com.bodanka.learnnplay.domain.dto.request.SignUpRequestDto;
 import com.bodanka.learnnplay.domain.dto.response.SignInResponseDto;
 import com.bodanka.learnnplay.domain.entity.User;
 import com.bodanka.learnnplay.exception.BadRequestException;
@@ -13,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Objects;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/auth")
@@ -20,8 +22,8 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/sign-up")
-    public ResponseEntity<String> signUp(@RequestBody TeacherSignUpRequestDto dto) {
-        if (!dto.password().equals(dto.confirmPassword())) {
+    public ResponseEntity<String> signUp(@RequestBody SignUpRequestDto dto) {
+        if (!Objects.equals(dto.password(), dto.confirmPassword())) {
             throw new BadRequestException("Passwords do not match");
         }
         User user = authService.signUp(new User(dto.firstName(), dto.lastName(), dto.email(), dto.password(), Role.TEACHER, Grade.ELEVEN));

@@ -16,15 +16,14 @@ import com.bodanka.learnnplay.service.UserTestGradeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@PreAuthorize("hasRole('TEACHER')")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/themes")
@@ -80,6 +79,7 @@ public class ThemeController {
         if (user.getRole() == Role.TEACHER) {
             List<ResponseThemeWithPercentageDto> teacherThemes = themeService.findByUser(user).stream()
                     .map(theme -> new ResponseThemeWithPercentageDto(theme.getId(), theme.getTitle(), null))
+                    .sorted(Comparator.comparing(ResponseThemeWithPercentageDto::title))
                     .toList();
             return ResponseEntity.ok(teacherThemes);
         }
@@ -88,6 +88,7 @@ public class ThemeController {
                 .collect(Collectors.groupingBy(UserTestGrade::getThemeId));
         List<ResponseThemeWithPercentageDto> themesWithPercentage = map.entrySet().stream()
                 .map(entry -> new ResponseThemeWithPercentageDto(entry.getKey(), getThemeTitleOrEmpty(entry.getKey()), calculateThemePercentage(entry.getValue())))
+                .sorted(Comparator.comparing(ResponseThemeWithPercentageDto::title))
                 .toList();
         return ResponseEntity.ok(themesWithPercentage);
     }
