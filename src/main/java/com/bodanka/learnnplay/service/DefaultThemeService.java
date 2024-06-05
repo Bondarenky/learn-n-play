@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Service
@@ -36,10 +37,12 @@ public class DefaultThemeService implements ThemeService {
     @Override
     public String deleteThemeById(String id) {
         AtomicReference<String> title = new AtomicReference<>();
+        AtomicBoolean hasTests = new AtomicBoolean(false);
         findThemeById(id).ifPresent(theme -> {
             title.set(theme.getTitle());
+            hasTests.set(!theme.getTests().isEmpty());
             themeRepository.delete(theme);
         });
-        return "Theme %s and its tests were deleted".formatted(title.get());
+        return "Theme %s%s were deleted".formatted(title.get(), hasTests.get() ? " and its tests" : "");
     }
 }

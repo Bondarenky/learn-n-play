@@ -30,6 +30,6 @@ public class DefaultTestService implements TestService {
             testTitle.set(test.getTitle());
             testRepository.delete(test);
         });
-        return "Test %s deleted".formatted(testTitle.get());
+        return "Test %s were deleted".formatted(testTitle.get());
     }
 }
