@@ -16,7 +16,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class DefaultEmailVerificationTokenService implements EmailVerificationTokenService {
     private final EmailVerificationTokenRepository emailVerificationTokenRepository;
-    private final UserService userService;
 
     @Override
     public Optional<EmailVerificationToken> findByToken(String token) {
@@ -32,7 +31,7 @@ public class DefaultEmailVerificationTokenService implements EmailVerificationTo
 
     @Override
     @Transactional
-    public boolean validateEmailVerificationToken(String token) {
+    public EmailVerificationToken validateEmailVerificationToken(String token) {
         EmailVerificationToken emailVerificationToken = findByToken(token).orElseThrow(() -> {
             return new BadRequestException("Email verification token [%s] not found".formatted(token));
         });
@@ -45,7 +44,11 @@ public class DefaultEmailVerificationTokenService implements EmailVerificationTo
         }
 
         emailVerificationTokenRepository.confirm(token, LocalDateTime.now());
-        userService.enable(UUID.fromString(emailVerificationToken.getUser().getId()));
-        return true;
+        return emailVerificationToken;
+    }
+
+    @Override
+    public void deleteByUser(User user) {
+        emailVerificationTokenRepository.deleteByUser(user);
     }
 }

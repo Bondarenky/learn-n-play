@@ -1,6 +1,7 @@
 package com.bodanka.learnnplay.repository;
 
 import com.bodanka.learnnplay.domain.entity.EmailVerificationToken;
+import com.bodanka.learnnplay.domain.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -20,4 +21,6 @@ public interface EmailVerificationTokenRepository extends JpaRepository<EmailVer
             "SET t.confirmedAt = ?2 " +
             "WHERE t.token = ?1")
     void confirm(String token, LocalDateTime confirmedAt);
+
+    void deleteByUser(User user);
 }

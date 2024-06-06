@@ -1,22 +1,23 @@
 package com.bodanka.learnnplay.service;
 
-import com.bodanka.learnnplay.exception.BadRequestException;
-import com.bodanka.learnnplay.security.DefaultUserDetails;
 import com.bodanka.learnnplay.domain.entity.EmailVerificationToken;
 import com.bodanka.learnnplay.domain.entity.User;
 import com.bodanka.learnnplay.email.event.EmailVerificationEvent;
+import com.bodanka.learnnplay.exception.BadRequestException;
+import com.bodanka.learnnplay.security.DefaultUserDetails;
 import com.bodanka.learnnplay.security.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -43,7 +44,9 @@ public class DefaultAuthService implements AuthService {
 
     @Override
     public boolean verifyEmailVerificationToken(String token) {
-        return emailVerificationTokenService.validateEmailVerificationToken(token);
+        EmailVerificationToken emailVerificationToken = emailVerificationTokenService.validateEmailVerificationToken(token);
+        userService.enable(UUID.fromString(emailVerificationToken.getUser().getId()));
+        return true;
     }
 
     @Override
@@ -54,7 +57,7 @@ public class DefaultAuthService implements AuthService {
             throw new BadRequestException("Bad Credentials");
         }
 
-        if(!userDetails.isEnabled()) {
+        if (!userDetails.isEnabled()) {
             throw new BadRequestException("Your account is disabled");
         }
 

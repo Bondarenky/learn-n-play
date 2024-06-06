@@ -8,6 +8,8 @@ import com.bodanka.learnnplay.util.FieldValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,6 +21,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class DefaultUserService implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailVerificationTokenService emailVerificationTokenService;
 
     @Override
     public User save(User user) {
@@ -38,13 +41,15 @@ public class DefaultUserService implements UserService {
     }
 
     @Override
+    @Transactional
     public String deleteById(UUID id) {
         AtomicReference<String> name = new AtomicReference<>();
         findById(id).ifPresent(user -> {
-            name.set(user.getFirstName() + " " + user.getLastName());
+            name.set(StringUtils.capitalize(user.getRole().name().toLowerCase()) + " " + user.getFirstName() + " " + user.getLastName());
+            emailVerificationTokenService.deleteByUser(user);
             userRepository.delete(user);
         });
-        return name.get();
+        return name.get() + " were deleted";
     }
 
     @Override

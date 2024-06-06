@@ -10,5 +10,7 @@ public interface EmailVerificationTokenService {
 
     EmailVerificationToken generateEmailVerificationToken(User user);
 
-    boolean validateEmailVerificationToken(String token);
+    EmailVerificationToken validateEmailVerificationToken(String token);
+
+    void deleteByUser(User user);
 }
