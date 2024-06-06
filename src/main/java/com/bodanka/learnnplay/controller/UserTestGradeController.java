@@ -4,7 +4,6 @@ import com.bodanka.learnnplay.domain.Grade;
 import com.bodanka.learnnplay.domain.Role;
 import com.bodanka.learnnplay.domain.dto.request.RequestQuestionDto;
 import com.bodanka.learnnplay.domain.dto.request.RequestTestAnswersDto;
-import com.bodanka.learnnplay.domain.dto.request.RequestUserByEmailDto;
 import com.bodanka.learnnplay.domain.dto.response.ResponseClassWithGradesDto;
 import com.bodanka.learnnplay.domain.dto.response.ResponseGradeDto;
 import com.bodanka.learnnplay.domain.dto.response.ResponseThemeWithGradeDto;
@@ -20,10 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -91,9 +87,9 @@ public class UserTestGradeController {
         }
     }
 
-    @PostMapping("/teachers/students")
-    public ResponseEntity<List<ResponseUserWithGradesDto>> getStudentsGrades(@RequestBody RequestUserByEmailDto dto) {
-        User teacher = userService.findByEmail(dto.email()).orElse(User.empty());
+    @GetMapping("/teachers/students/{email}")
+    public ResponseEntity<List<ResponseUserWithGradesDto>> getStudentsGrades(@PathVariable String email) {
+        User teacher = userService.findByEmail(email).orElse(User.empty());
         if (teacher.getRole() == null || teacher.getRole() == Role.STUDENT) {
             return ResponseEntity.ok(Collections.emptyList());
         }
