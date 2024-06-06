@@ -47,10 +47,10 @@ public class ClassController {
         String studentId = user.getRole() == Role.TEACHER ? null : user.getId();
         List<ResponseClassSectionDto> themes = clazz.getThemes().stream()
                 .filter(theme -> theme.getUser().getId().equals(teacherId))
-                .sorted(Comparator.comparing(Theme::getCreatedAt).reversed())
+                .sorted(Comparator.comparing(Theme::getCreatedAt))
                 .map(theme -> {
                     List<ResponseTestDto> tests = theme.getTests().stream()
-                            .sorted(Comparator.comparing(Test::getCreatedAt).reversed())
+                            .sorted(Comparator.comparing(Test::getCreatedAt))
                             .map(test -> {
                                 Double percentage = null;
                                 if (studentId != null) {
