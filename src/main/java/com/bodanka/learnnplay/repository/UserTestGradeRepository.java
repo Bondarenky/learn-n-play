@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface UserTestGradeRepository extends JpaRepository<UserTestGrade, UserTestGradeId> {
@@ -16,4 +17,8 @@ public interface UserTestGradeRepository extends JpaRepository<UserTestGrade, Us
     void deleteByThemeId(String themeId);
 
     void deleteByTestId(String testId);
+
+    Optional<UserTestGrade> findByUserIdAndTestId(String userId, String testId);
+
+    List<UserTestGrade> findByUserIdAndThemeId(String userId, String themeId);
 }

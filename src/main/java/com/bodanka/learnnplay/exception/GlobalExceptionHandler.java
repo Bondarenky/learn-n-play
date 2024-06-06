@@ -20,6 +20,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return createResponse(HttpStatus.BAD_REQUEST, "Bad Credentials");
     }
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ExceptionResponseDto> handleUsernameNotFoundException(Exception e) {
+        return createResponse(HttpStatus.INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+    }
+
     private ResponseEntity<ExceptionResponseDto> createResponse(HttpStatus httpStatus, String message) {
         return new ResponseEntity<>(new ExceptionResponseDto(httpStatus, message), httpStatus);
     }

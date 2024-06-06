@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -35,5 +36,15 @@ public class DefaultUserTestGradeService implements UserTestGradeService {
     @Override
     public void deleteByTestId(String testId) {
         userTestGradeRepository.deleteByTestId(testId);
+    }
+
+    @Override
+    public Optional<UserTestGrade> findByUserIdAndTestId(String useId, String testId) {
+        return userTestGradeRepository.findByUserIdAndTestId(useId, testId);
+    }
+
+    @Override
+    public List<UserTestGrade> findByUserIdAndThemeId(String userId, String themeId) {
+        return userTestGradeRepository.findByUserIdAndThemeId(userId, themeId);
     }
 }

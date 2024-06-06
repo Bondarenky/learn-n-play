@@ -3,6 +3,7 @@ package com.bodanka.learnnplay.service;
 import com.bodanka.learnnplay.domain.entity.UserTestGrade;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface UserTestGradeService {
     UserTestGrade save(UserTestGrade userTestGrade);
@@ -14,4 +15,8 @@ public interface UserTestGradeService {
     void deleteByThemeId(String themeId);
 
     void deleteByTestId(String testId);
+
+    Optional<UserTestGrade> findByUserIdAndTestId(String useId, String testId);
+
+    List<UserTestGrade> findByUserIdAndThemeId(String userId, String themeId);
 }

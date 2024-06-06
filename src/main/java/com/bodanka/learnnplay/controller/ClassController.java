@@ -1,22 +1,29 @@
 package com.bodanka.learnnplay.controller;
 
 import com.bodanka.learnnplay.domain.Grade;
+import com.bodanka.learnnplay.domain.Role;
 import com.bodanka.learnnplay.domain.dto.response.ResponseClassDto;
 import com.bodanka.learnnplay.domain.dto.response.ResponseClassSectionDto;
 import com.bodanka.learnnplay.domain.dto.response.ResponseTestDto;
 import com.bodanka.learnnplay.domain.entity.Class;
-import com.bodanka.learnnplay.domain.entity.Test;
-import com.bodanka.learnnplay.domain.entity.Theme;
+import com.bodanka.learnnplay.domain.entity.*;
 import com.bodanka.learnnplay.exception.BadRequestException;
 import com.bodanka.learnnplay.service.ClassService;
+import com.bodanka.learnnplay.service.UserService;
+import com.bodanka.learnnplay.service.UserTestGradeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @RestController
@@ -24,29 +31,57 @@ import java.util.stream.Collectors;
 @RequestMapping("/classes")
 public class ClassController {
     private final ClassService classService;
+    private final UserService userService;
+    private final UserTestGradeService userTestGradeService;
 
     @GetMapping("/{grade}")
-    public ResponseEntity<ResponseClassDto> getClass(@PathVariable(name = "grade") int gradeValue) {
-        Grade grade = Grade.fromGradeValue(gradeValue);
-        Optional<Class> classByGrade = classService.findByGrade(grade);
-        if (classByGrade.isEmpty()) {
-            throw new BadRequestException("Class " + gradeValue + " not found");
-        }
+    public ResponseEntity<ResponseClassDto> getClass(@PathVariable(name = "grade") int gradeValue, Authentication authentication) {
+        Class clazz = classService.findByGrade(Grade.fromGradeValue(gradeValue)).orElseThrow(
+                () -> new BadRequestException("Class " + gradeValue + " not found")
+        );
+        User user = userService.findByEmail(authentication.getName()).orElseThrow(
+                () -> new RuntimeException("User " + authentication.getName() + " not found")
+        );
 
-        Class clazz = classByGrade.get();
-
+        String teacherId = user.getRole() == Role.TEACHER ? user.getId() : user.getTeacherId();
+        String studentId = user.getRole() == Role.TEACHER ? null : user.getId();
         List<ResponseClassSectionDto> themes = clazz.getThemes().stream()
+                .filter(theme -> theme.getUser().getId().equals(teacherId))
                 .sorted(Comparator.comparing(Theme::getCreatedAt).reversed())
                 .map(theme -> {
                     List<ResponseTestDto> tests = theme.getTests().stream()
                             .sorted(Comparator.comparing(Test::getCreatedAt).reversed())
-                            .map(test -> new ResponseTestDto(test.getId(), test.getTitle()))
+                            .map(test -> {
+                                Double percentage = null;
+                                if (studentId != null) {
+                                    percentage = userTestGradeService.findByUserIdAndTestId(studentId, test.getId()).map(UserTestGrade::getPercentage).orElse(null);
+                                }
+                                return new ResponseTestDto(test.getId(), test.getTitle(), percentage);
+                            })
                             .toList();
-                    return new ResponseClassSectionDto(theme.getId(), theme.getTitle(), tests);
+
+                    AtomicReference<Double> percentage = new AtomicReference<>();
+                    if (studentId != null) {
+                        userTestGradeService.findByUserIdAndThemeId(studentId, theme.getId()).stream()
+                                .mapToDouble(UserTestGrade::getPercentage)
+                                .average()
+                                .ifPresent(percentage::set);
+                    }
+
+                    return new ResponseClassSectionDto(theme.getId(), theme.getTitle(), percentage.get(), tests);
                 })
                 .toList();
 
-        return ResponseEntity.ok(new ResponseClassDto(clazz.getId(), grade.getGradeValue(), themes));
+
+        AtomicReference<Double> percentage = new AtomicReference<>();
+        if (studentId != null) {
+            userTestGradeService.findByUserIdAndClassId(studentId, clazz.getId()).stream()
+                    .mapToDouble(UserTestGrade::getPercentage)
+                    .average()
+                    .ifPresent(percentage::set);
+        }
+
+        return ResponseEntity.ok(new ResponseClassDto(clazz.getId(), gradeValue, percentage.get(), themes));
     }
 
     @GetMapping
