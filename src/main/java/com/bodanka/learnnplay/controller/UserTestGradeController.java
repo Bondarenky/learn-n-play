@@ -149,6 +149,11 @@ public class UserTestGradeController {
                 .toList();
 
         List<ResponseUserWithGradesDto> res = new ArrayList<>(usersGrades);
+
+        teacher.getStudents().stream()
+                .filter(student -> !usersGrades.stream().map(ResponseUserWithGradesDto::studentId).toList().contains(student.getId()))
+                .forEach(student -> res.add(new ResponseUserWithGradesDto(student.getId(), student.getFirstName(), student.getLastName(), null, Collections.emptyList())));
+
         res.sort(Comparator.comparing(ResponseUserWithGradesDto::firstName));
         return ResponseEntity.ok(res);
     }
