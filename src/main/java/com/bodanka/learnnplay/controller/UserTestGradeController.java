@@ -16,6 +16,7 @@ import com.bodanka.learnnplay.service.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -34,6 +35,7 @@ public class UserTestGradeController {
     private final ClassService classService;
     private final ThemeService themeService;
 
+    @Operation(summary = "Submit a test attempt")
     @PostMapping
     private ResponseEntity<ResponseGradeDto> create(@RequestBody RequestTestAnswersDto dto, Authentication authentication) {
         try {
@@ -87,6 +89,7 @@ public class UserTestGradeController {
         }
     }
 
+    @Operation(summary = "Get teacher's students grades by teacher email")
     @GetMapping("/teachers/students/{email}")
     public ResponseEntity<List<ResponseUserWithGradesDto>> getStudentsGrades(@PathVariable String email) {
         User teacher = userService.findByEmail(email).orElse(User.empty());

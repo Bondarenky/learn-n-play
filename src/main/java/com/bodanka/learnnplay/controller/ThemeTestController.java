@@ -12,6 +12,7 @@ import com.bodanka.learnnplay.service.ThemeService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,7 @@ public class ThemeTestController {
     private final TestService testService;
     private final ThemeService themeService;
 
+    @Operation(summary = "Create a test within specific theme")
     @PostMapping
     public ResponseEntity<ResponseThemeTestDto> saveTest(@RequestBody RequestTestDto dto) {
         try {
@@ -43,6 +45,7 @@ public class ThemeTestController {
         }
     }
 
+    @Operation(summary = "Get test by id to display it to the student")
     @GetMapping("/{testId}")
     public ResponseEntity<ResponseSingleTestDto> findTestById(@PathVariable("testId") String testId) {
         try {
@@ -64,6 +67,7 @@ public class ThemeTestController {
         }
     }
 
+    @Operation(summary = "Delete test by its id")
     @DeleteMapping("/{testId}")
     public ResponseEntity<String> deleteTestById(@PathVariable("testId") String testId) {
         return ResponseEntity.ok(testService.delete(testId));

@@ -4,6 +4,7 @@ import com.bodanka.learnnplay.domain.dto.response.ResponseCurrentUserDto;
 import com.bodanka.learnnplay.domain.entity.User;
 import com.bodanka.learnnplay.exception.BadRequestException;
 import com.bodanka.learnnplay.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -18,6 +19,7 @@ import java.util.UUID;
 public class UserController {
     private final UserService userService;
 
+    @Operation(summary = "Get info about currently logged in user")
     @GetMapping("/current")
     public ResponseEntity<ResponseCurrentUserDto> getCurrentUser(Authentication authentication) {
         User current = userService.findByEmail(authentication.getName()).orElseThrow(
@@ -39,6 +41,7 @@ public class UserController {
         ));
     }
 
+    @Operation(summary = "Delete user by user id")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable UUID id) {
         return ResponseEntity.ok(userService.deleteById(id));

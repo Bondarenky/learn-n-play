@@ -13,6 +13,7 @@ import com.bodanka.learnnplay.service.ClassService;
 import com.bodanka.learnnplay.service.ThemeService;
 import com.bodanka.learnnplay.service.UserService;
 import com.bodanka.learnnplay.service.UserTestGradeService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +34,7 @@ public class ThemeController {
     private final ClassService classService;
     private final UserTestGradeService userTestGradeService;
 
+    @Operation(summary = "Create a theme within specific class")
     @PostMapping("/{grade}")
     public ResponseEntity<ResponseThemeDto> createTheme(@PathVariable int grade, @RequestBody RequestThemeDto dto, Authentication authentication) {
         User teacher = userService.findByEmail(authentication.getName()).orElseThrow(
@@ -45,6 +47,7 @@ public class ThemeController {
         return new ResponseEntity<>(new ResponseThemeDto(theme.getId(), theme.getTitle()), HttpStatus.CREATED);
     }
 
+    @Operation(summary = "Update a theme by theme id")
     @PutMapping("/{themeId}")
     public ResponseEntity<String> updateTheme(@PathVariable String themeId, @RequestBody RequestThemeDto dto) {
         StringBuilder oldTitle = new StringBuilder();
@@ -56,6 +59,7 @@ public class ThemeController {
         return ResponseEntity.ok("Theme [%s] renamed to [%s]".formatted(oldTitle, dto.title()));
     }
 
+    @Operation(summary = "Find all user created themes")
     @GetMapping
     public ResponseEntity<List<ResponseThemeDto>> getTheme(Authentication authentication) {
         User teacher = userService.findByEmail(authentication.getName()).orElseThrow(
@@ -67,11 +71,13 @@ public class ThemeController {
         return ResponseEntity.ok(themes);
     }
 
+    @Operation(summary = "Delete a theme by its id")
     @DeleteMapping("/{themeId}")
     public ResponseEntity<String> deleteTheme(@PathVariable String themeId) {
         return ResponseEntity.ok(themeService.deleteThemeById(themeId));
     }
 
+    @Operation(summary = "Get theme with completion percentage by author's email")
     @GetMapping("/{email}")
     public ResponseEntity<List<ResponseThemeWithPercentageDto>> getThemeByEmail(@PathVariable String email) {
         User user = userService.findByEmail(email).orElseThrow(() -> new RuntimeException("User [%s] not found".formatted(email)));

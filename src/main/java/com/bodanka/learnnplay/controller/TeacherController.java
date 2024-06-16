@@ -9,6 +9,7 @@ import com.bodanka.learnnplay.domain.mapper.Mapper;
 import com.bodanka.learnnplay.exception.BadRequestException;
 import com.bodanka.learnnplay.service.AuthService;
 import com.bodanka.learnnplay.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -27,6 +28,7 @@ public class TeacherController {
     private final UserService userService;
     private final Mapper<User, RequestUserDto, ResponseUserDto> userMapper;
 
+    @Operation(summary = "Add new student for the current user (teacher)")
     @PostMapping("/students")
     public ResponseEntity<ResponseUserDto> createStudent(@RequestBody SignUpRequestDto dto, Authentication authentication) {
         User teacher = userService.findByEmail(authentication.getName())
@@ -50,6 +52,7 @@ public class TeacherController {
         return ResponseEntity.ok(userMapper.toResponseDto(student));
     }
 
+    @Operation(summary = "Find all students of the current logged in user")
     @GetMapping("/students")
     public ResponseEntity<List<ResponseUserDto>> getStudents(Authentication authentication) {
         List<User> students = new ArrayList<>();

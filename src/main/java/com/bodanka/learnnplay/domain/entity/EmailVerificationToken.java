@@ -39,8 +39,6 @@ public class EmailVerificationToken {
         this.token = token;
         this.user = user;
         createdAt = LocalDateTime.now();
-
-        // TODO: 8/25/2023 think how to replace hardcoded value
         expiresAt = createdAt.plus(600_000, ChronoUnit.MILLIS);
     }
 }

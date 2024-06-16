@@ -11,6 +11,7 @@ import com.bodanka.learnnplay.exception.BadRequestException;
 import com.bodanka.learnnplay.service.ClassService;
 import com.bodanka.learnnplay.service.UserService;
 import com.bodanka.learnnplay.service.UserTestGradeService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -34,6 +35,7 @@ public class ClassController {
     private final UserService userService;
     private final UserTestGradeService userTestGradeService;
 
+    @Operation(summary = "Return class by id with with the themes and test which were created by the current user")
     @GetMapping("/{grade}")
     public ResponseEntity<ResponseClassDto> getClass(@PathVariable(name = "grade") int gradeValue, Authentication authentication) {
         Class clazz = classService.findByGrade(Grade.fromGradeValue(gradeValue)).orElseThrow(
@@ -84,6 +86,7 @@ public class ClassController {
         return ResponseEntity.ok(new ResponseClassDto(clazz.getId(), gradeValue, percentage.get(), themes));
     }
 
+    @Operation(summary = "Get ids of the classes by its grades")
     @GetMapping
     public ResponseEntity<Map<Integer, String>> getClasses() {
         Map<Integer, String> integerClassMap = Arrays.stream(Grade.values())

@@ -15,8 +15,6 @@ public class EmailVerificationEventListener {
     public void onApplicationEvent(EmailVerificationEvent event) {
         String url = event.getUrl() + "/verify?token=" + event.getEmailVerificationToken().getToken();
         String userEmail = event.getUser().getEmail();
-
-        // TODO: 8/25/2023 think how to replace hardcoded value
         long expirationMinutes = 600_000 / 1000 / 60;
         emailSender.send(userEmail, buildEmail(userEmail, url, expirationMinutes));
     }
